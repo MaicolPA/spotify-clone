@@ -6,6 +6,7 @@ import { BiArchive } from "react-icons/bi"
 import { MdOutlineDownloading, MdMenu } from "react-icons/md"
 import { useEffect, useState } from 'react'
 import Swal from 'sweetalert2'
+import spotifyLogo from '../img/Spotify_Logo.png';
 
 export default function Menu() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -20,7 +21,7 @@ export default function Menu() {
     return (
         <ContainerMenu>
             <ContainerLogo>
-                <Img src='./src/img/Spotify_Logo.png' />
+                <Img src={spotifyLogo} />
             </ContainerLogo>
 
             <AlwaysVisibleItems>
