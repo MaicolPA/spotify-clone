@@ -4,10 +4,18 @@ import { GoHome } from "react-icons/go"
 import { RiSearchLine } from "react-icons/ri"
 import { BiArchive } from "react-icons/bi"
 import { MdOutlineDownloading, MdMenu } from "react-icons/md"
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import Swal from 'sweetalert2'
 
 export default function Menu() {
-    const [isMenuOpen, setIsMenuOpen] = useState(false)
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [usuarioActivo, setUsuarioActivo] = useState(null);
+
+    useEffect(() => {
+        const user = sessionStorage.getItem('usuario');
+
+        setUsuarioActivo(user);
+    }, []); 
 
     return (
         <ContainerMenu>
@@ -40,17 +48,57 @@ export default function Menu() {
                     </NavList>
                 </NavGroup>
 
-                <ContainerMenuItems>
-                    <NavList>
-                        <ItemNav>
-                            <MdOutlineDownloading size={20} />
-                            Instalar app
-                        </ItemNav>
-                        <ItemNav>Registrarte</ItemNav>
-                    </NavList>
-                </ContainerMenuItems>
+                    {usuarioActivo ? (
+                        <>
+                            <ContainerMenuItems>
+                            <NavList>
+                                <ItemNav>
+                                <MdOutlineDownloading size={20} />
+                                Instalar app
+                                </ItemNav>
+                            </NavList>
+                            </ContainerMenuItems>
+                            <StyledLinkButton to="/" onClick={() => {
+                                
+                                let timerInterval;
+                                Swal.fire({
+                                title: "Cerrado sesión...",
+                                html: "Esperamos que vuelvas pronto",
+                                timer: 2000,
+                                timerProgressBar: true,
+                                willClose: () => {
+                                    clearInterval(timerInterval);
+                                }
+                                }).then((result) => {
+                                if (result.dismiss === Swal.DismissReason.timer) {
+                                    console.log("I was closed by the timer");
+                                }
+                                });
 
-                <StyledLinkButton to="/login">Iniciar sesión</StyledLinkButton>
+                                sessionStorage.removeItem('usuario');
+                                setUsuarioActivo(null);
+                                }}>
+                                Cerrar sesión
+                            </StyledLinkButton>
+                        </>
+                        ) : (
+                        <>
+                            <ContainerMenuItems>
+                            <NavList>
+                                <ItemNav>
+                                <MdOutlineDownloading size={20} />
+                                Instalar app
+                                </ItemNav>
+                                <ItemNav>
+                                <Link to="/register" style={{ color: "#fff", textDecoration: "none" }}>
+                                    Registrarte
+                                </Link>
+                                </ItemNav>
+                            </NavList>
+                            </ContainerMenuItems>
+                            <StyledLinkButton to="/login">Iniciar sesión</StyledLinkButton>
+                        </>
+                        )}
             </ContainerOptions>
         </ContainerMenu>
     )

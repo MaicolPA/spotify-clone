@@ -2,42 +2,37 @@ import { dbStore } from '../firebase/appConfig';
 import { onSnapshot, collection } from "firebase/firestore";
 import { useEffect, useRef, useState } from 'react'
 import styled from "styled-components";
-import { FcGoogle } from "react-icons/fc";
-import { FaFacebook, FaApple } from "react-icons/fa";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { auth } from '../firebase/appConfig';
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 import Swal from 'sweetalert2'
+import { Link } from 'react-router-dom'
 
 export default function Login() {
     const [user, setUser] = useState([]);
-    const { register, handleSubmit } = useForm();
+    const { register, handleSubmit, reset } = useForm();
     const Navigate = useNavigate()
     
     const onSubmit = async (data) => {
-        try {
-            const userCredential = await signInWithEmailAndPassword(auth, data.email, data.pass);
-            console.log("Sesión iniciada:", userCredential.user);
-            let timerInterval;
+
+        if(data.pass === data.confirmpass) {
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.pass,);
+                console.log("Nuevo registro:", userCredential.user);
+                Swal.fire("Bienvenido", userCredential.user.email, "success");
+                Navigate('/');
+            } catch (error) {
+                Swal.fire("Error", error.message, "error");
+                reset();
+            }
+        } else {
             Swal.fire({
-            icon: "success",
-            title: "Bienvenido,",
-            html: userCredential.user.email,
-            timer: 2000,
-            timerProgressBar: true,
-            willClose: () => {
-                clearInterval(timerInterval);
-            }
-            }).then((result) => {
-            if (result.dismiss === Swal.DismissReason.timer) {
-                console.log("I was closed by the timer");
-            }
+                title: "Las contraseñas no coinciden",
+                text: "Vuelve a intentarlo",
+                icon: "error"
             });
-            sessionStorage.setItem('usuario', userCredential.user.email);
-            Navigate('/');
-        } catch (error) {
-            Swal.fire("Error", error.message, "error");
+            reset();
         }
     }; 
 
@@ -45,28 +40,23 @@ export default function Login() {
         <LoginContainer>
             <LoginBox>
                 <Logo src="./src/img/Spotify_Logo.png" alt="Spotify Logo" />
-                <Title>Inicia sesión en Spotify</Title>
-
-                <SocialButtons>
-                    <ButtonOutline><FcGoogle size={20} /> Continuar con Google</ButtonOutline>
-                    <ButtonOutline><FaFacebook size={20} color="#1877F2" /> Continuar con Facebook</ButtonOutline>
-                    <ButtonOutline><FaApple size={20} /> Continuar con Apple</ButtonOutline>
-                </SocialButtons>
-
+                <Title>Registrar nuevo usuario</Title>
                 <Divider />
 
                 <InputGroup>
                     <form onSubmit={handleSubmit(onSubmit)}>
-                        <Label>Correo electrónico o nombre de usuario</Label>
-                        <Input {...register('email')} type="text" placeholder="Correo electrónico o nombre de usuario" />
+                        <Label>Correo electrónico</Label>
+                        <Input {...register('email')} type="email" placeholder="Correo electrónico" required/>
                         <Label>Contraseña</Label>
-                        <Input {...register('pass')} type="password" placeholder="Contraseña" />
+                        <Input {...register('pass')} type="password" placeholder="Contraseña" required/>
+                        <Label>Verificar contraseña</Label>
+                        <Input {...register('confirmpass')} type="password" placeholder="Verificar contraseña" required/>
                         <ButtonGreen type="submit">Continuar</ButtonGreen>
                     </form> 
                 </InputGroup>
                 
                 <SignupText>
-                    ¿No tienes cuenta? <SignupLink href="#">Suscríbete a Spotify</SignupLink>
+                    ¿Ya tienes cuenta? <Link to="/login" style={{ color: "#fff", textDecoration: "none" }}>Inicia sesión en Spotify</Link>
                 </SignupText>
             </LoginBox>
         </LoginContainer>
@@ -242,15 +232,4 @@ const SignupText = styled.p`
     color: #a7a7a7;
     font-size: 0.95rem;
     margin-top: 1.5rem;
-`;
-
-const SignupLink = styled.a`
-    color: white;
-    font-weight: bold;
-    text-decoration: underline;
-    transition: color 0.2s ease;
-
-    &:hover {
-        color: #1ed760;
-    }
 `;
